@@ -56,17 +56,17 @@ func (c *Config) IsServerless(db *DBConnection) (bool, error) {
 		return c.isServerless, nil
 	}
 
-	c.checkedForServerless = true
-
 	_, err := db.Query("SELECT 1 FROM SYS_SERVERLESS_USAGE")
 	// No error means we have accessed the view and are running Redshift Serverless
 	if err == nil {
+		c.checkedForServerless = true
 		c.isServerless = true
 		return true, nil
 	}
 
 	// Insuficcient privileges means we do not have access to this view ergo we run on Redshift classic
 	if isPqErrorWithCode(err, pgErrorCodeInsufficientPrivileges) {
+		c.checkedForServerless = true
 		c.isServerless = false
 		return false, nil
 	}

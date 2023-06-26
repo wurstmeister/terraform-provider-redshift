@@ -31,8 +31,8 @@ func TestAccRedshiftSchema_Basic(t *testing.T) {
 
 					testAccCheckRedshiftSchemaExists("schema_configured"),
 					resource.TestCheckResourceAttr("redshift_schema.schema_configured", "name", "schema_configured"),
-					resource.TestCheckResourceAttr("redshift_schema.schema_configured", "quota", "15360"),
-					resource.TestCheckResourceAttr("redshift_schema.schema_configured", "cascade_on_delete", "false"),
+					resource.TestCheckResourceAttr("redshift_schema.schema_configured", "quota", "0"),
+					resource.TestCheckResourceAttr("redshift_schema.schema_configured", "cascade_on_delete", "true"),
 
 					testAccCheckRedshiftSchemaExists("wOoOT_I22_@tH15"),
 					resource.TestCheckResourceAttr("redshift_schema.fancy_name", "name", "wooot_i22_@th15"),
@@ -58,7 +58,7 @@ resource "redshift_user" "schema_user1" {
 	var configUpdate = `
 resource "redshift_schema" "update_schema" {
   name = "update_schema2"
-  quota = 10
+  quota = 0
 }
 
 resource "redshift_user" "schema_user1" {
@@ -83,7 +83,7 @@ resource "redshift_user" "schema_user1" {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRedshiftSchemaExists("update_schema2"),
 					resource.TestCheckResourceAttr("redshift_schema.update_schema", "name", "update_schema2"),
-					resource.TestCheckResourceAttr("redshift_schema.update_schema", "quota", "10240"),
+					resource.TestCheckResourceAttr("redshift_schema.update_schema", "quota", "0"),
 				),
 			},
 			{
@@ -108,7 +108,7 @@ resource "redshift_schema" "update_dl_schema" {
 	var configUpdate = `
 resource "redshift_schema" "update_dl_schema" {
   name = "update_dl_schema2"
-  quota = 10
+  quota = 0
   owner = redshift_user.schema_dl_user1.name
 }
 
@@ -134,7 +134,7 @@ resource "redshift_user" "schema_dl_user1" {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRedshiftSchemaExists("update_dl_schema2"),
 					resource.TestCheckResourceAttr("redshift_schema.update_dl_schema", "name", "update_dl_schema2"),
-					resource.TestCheckResourceAttr("redshift_schema.update_dl_schema", "quota", "10240"),
+					resource.TestCheckResourceAttr("redshift_schema.update_dl_schema", "quota", "0"),
 				),
 			},
 			{
@@ -151,8 +151,9 @@ resource "redshift_user" "schema_dl_user1" {
 
 // Acceptance test for external redshift schema using AWS Glue Data Catalog
 // The following environment variables must be set, otherwise the test will be skipped:
-//   REDSHIFT_EXTERNAL_SCHEMA_DATA_CATALOG_DATABASE - source database name
-//   REDSHIFT_EXTERNAL_SCHEMA_DATA_CATALOG_IAM_ROLE_ARNS - comma-separated list of ARNs to use
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_DATA_CATALOG_DATABASE - source database name
+//	REDSHIFT_EXTERNAL_SCHEMA_DATA_CATALOG_IAM_ROLE_ARNS - comma-separated list of ARNs to use
 func TestAccRedshiftSchema_ExternalDataCatalog(t *testing.T) {
 	dbName := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_DATA_CATALOG_DATABASE", t)
 	iamRoleArnsRaw := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_DATA_CATALOG_IAM_ROLE_ARNS", t)
@@ -207,11 +208,14 @@ resource "redshift_schema" "spectrum" {
 
 // Acceptance test for external redshift schema using Hive metastore
 // The following environment variables must be set, otherwise the test will be skipped:
-//   REDSHIFT_EXTERNAL_SCHEMA_HIVE_DATABASE - source database name
-//   REDSHIFT_EXTERNAL_SCHEMA_HIVE_HOSTNAME - hive metastore database endpoint FQDN or IP address
-//   REDSHIFT_EXTERNAL_SCHEMA_HIVE_IAM_ROLE_ARNS - comma-separated list of ARNs to use
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_HIVE_DATABASE - source database name
+//	REDSHIFT_EXTERNAL_SCHEMA_HIVE_HOSTNAME - hive metastore database endpoint FQDN or IP address
+//	REDSHIFT_EXTERNAL_SCHEMA_HIVE_IAM_ROLE_ARNS - comma-separated list of ARNs to use
+//
 // Additionally, the following environment variables may be optionally set:
-//   REDSHIFT_EXTERNAL_SCHEMA_HIVE_PORT - hive metastore port. Default is 9083
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_HIVE_PORT - hive metastore port. Default is 9083
 func TestAccRedshiftSchema_ExternalHive(t *testing.T) {
 	dbName := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_HIVE_DATABASE", t)
 	dbHostname := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_HIVE_HOSTNAME", t)
@@ -275,13 +279,16 @@ resource "redshift_schema" "hive" {
 
 // Acceptance test for external redshift schema using RDS Postgres
 // The following environment variables must be set, otherwise the test will be skipped:
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_DATABASE - source database name
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_HOSTNAME - RDS endpoint FQDN or IP address
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_IAM_ROLE_ARNS - comma-separated list of ARNs to use
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_SECRET_ARN - ARN of the secret in Secrets Manager containing credentials for authenticating to RDS
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_DATABASE - source database name
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_HOSTNAME - RDS endpoint FQDN or IP address
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_IAM_ROLE_ARNS - comma-separated list of ARNs to use
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_SECRET_ARN - ARN of the secret in Secrets Manager containing credentials for authenticating to RDS
+//
 // Additionally, the following environment variables may be optionally set:
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_PORT - RDS port. Default is 5432
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_SCHEMA - source database schema. Default is "public"
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_PORT - RDS port. Default is 5432
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_SCHEMA - source database schema. Default is "public"
 func TestAccRedshiftSchema_ExternalRdsPostgres(t *testing.T) {
 	dbName := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_DATABASE", t)
 	dbHostname := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_RDS_POSTGRES_HOSTNAME", t)
@@ -354,12 +361,15 @@ resource "redshift_schema" "postgres" {
 
 // Acceptance test for external redshift schema using RDS Mysql
 // The following environment variables must be set, otherwise the test will be skipped:
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_DATABASE - source database name
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_HOSTNAME - RDS endpoint FQDN or IP address
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_IAM_ROLE_ARNS - comma-separated list of ARNs to use
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_SECRET_ARN - ARN of the secret in Secrets Manager containing credentials for authenticating to RDS
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_DATABASE - source database name
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_HOSTNAME - RDS endpoint FQDN or IP address
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_IAM_ROLE_ARNS - comma-separated list of ARNs to use
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_SECRET_ARN - ARN of the secret in Secrets Manager containing credentials for authenticating to RDS
+//
 // Additionally, the following environment variables may be optionally set:
-//   REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_PORT - RDS port. Default is 3306
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_PORT - RDS port. Default is 3306
 func TestAccRedshiftSchema_ExternalRdsMysql(t *testing.T) {
 	dbName := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_DATABASE", t)
 	dbHostname := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_RDS_MYSQL_HOSTNAME", t)
@@ -426,9 +436,12 @@ resource "redshift_schema" "mysql" {
 
 // Acceptance test for external redshift schema using datashare database
 // The following environment variables must be set, otherwise the test will be skipped:
-//   REDSHIFT_EXTERNAL_SCHEMA_REDSHIFT_DATABASE - source database name
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_REDSHIFT_DATABASE - source database name
+//
 // Additionally, the following environment variables may be optionally set:
-//   REDSHIFT_EXTERNAL_SCHEMA_REDSHIFT_SCHEMA - datashare schema name. Default is "public"
+//
+//	REDSHIFT_EXTERNAL_SCHEMA_REDSHIFT_SCHEMA - datashare schema name. Default is "public"
 func TestAccRedshiftSchema_ExternalRedshift(t *testing.T) {
 	dbName := getEnvOrSkip("REDSHIFT_EXTERNAL_SCHEMA_REDSHIFT_DATABASE", t)
 	dbSchema := os.Getenv("REDSHIFT_EXTERNAL_SCHEMA_REDSHIFT_SCHEMA")
@@ -610,9 +623,9 @@ resource "redshift_schema" "schema_defaults" {
 
 resource "redshift_schema" "schema_configured" {
   name = "schema_configured"
-  quota = 15
-  cascade_on_delete = false
-  owner = upper(redshift_user.schema_test_user1.name)
+  quota = 0
+  cascade_on_delete = true
+  owner = redshift_user.schema_test_user1.name
 }
 
 resource "redshift_schema" "fancy_name" {
